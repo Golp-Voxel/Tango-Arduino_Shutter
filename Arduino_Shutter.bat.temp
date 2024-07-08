@@ -1,0 +1,6 @@
+@echo off
+call "C:\ProgramData\anaconda3\condabin\activate.bat"
+
+cd C:\Users\User\Desktop\Golpe_Voxel\Tango-Arduino_Shutter 
+
+python C:\Users\User\Desktop\Golpe_Voxel\Tango-Arduino_Shutter\Arduino_Shutter.py 1 2>&1
