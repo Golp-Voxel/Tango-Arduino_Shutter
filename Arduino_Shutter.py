@@ -11,6 +11,7 @@
 import time
 import json
 import tango
+import serial
 
 from tango import AttrQuality, AttrWriteType, DevState, DispLevel, AttReqType, Database
 from tango.server import Device, attribute, command
@@ -19,7 +20,7 @@ from tango.server import class_property, device_property
 
 
 class Arduino_Shutter(Device):
-    Arduino_Shutter = {}
+    Arduino_Shutter_D = {}
 
     host = device_property(dtype=str, default_value="localhost")
     port = class_property(dtype=int, default_value=10000)
@@ -38,19 +39,46 @@ class Arduino_Shutter(Device):
 
 
     '''
-        AG_UC8 =        {
+        ArduinoInfo =        {
                             "Name"      : <user_name_given_on Connect>,
-                            "COM"       : 0,
+                            "COM"       : 0
                         }
     '''    
 
 
     @command(dtype_in=str,dtype_out=str)  
-    def Connect(self,AG_UC8):
-      
-
-        return "Stuff"
+    def Connect(self,ArduinoInfo):
+        AI = json.loads(ArduinoInfo)
+        try:
+            self.Arduino_Shutter_D[AI["Name"]] = serial.Serial("COM"+str(AI["COM"]), baudrate = 9600)
+            return "Device is connected"
+        except:
+            return "Not possible to connect to the divece"
     
+    '''
+        Device_to_Open =        {
+                                    "Name"      : <user_name_given_on Connect>
+                                }
+    '''  
+    
+    @command(dtype_in=str,dtype_out=str)  
+    def OpenShutter(self,Device_to_Open):
+        DtO=json.loads(Device_to_Open)
+        cmd = b'On\n'
+        self.Arduino_Shutter_D[DtO["Name"]].flush()
+        self.Arduino_Shutter_D[DtO["Name"]].write(cmd)
+        self.Arduino_Shutter_D[DtO["Name"]].flush()
+        msg = self.Arduino_Shutter_D[DtO["Name"]].read_until(b'\n')
+        return msg.decode('utf-8')
+    
+    @command(dtype_in=str,dtype_out=str)  
+    def CloseShutter(self,Device_to_Open):
+        DtO=json.loads(Device_to_Open)
+        cmd ="Off\n"
+        self.Arduino_Shutter_D[DtO["Name"]].write(cmd.encode())
+        msg = self.Arduino_Shutter_D[DtO["Name"]].read_until(b'\n')
+        return msg.decode('utf-8')
+
 
 
         
