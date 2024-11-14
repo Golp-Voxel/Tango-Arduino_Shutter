@@ -64,7 +64,7 @@ class Arduino_Shutter(Device):
     @command(dtype_in=str,dtype_out=str)  
     def OpenShutter(self,Device_to_Open):
         DtO=json.loads(Device_to_Open)
-        cmd = b'On\n'
+        cmd = b'{"action" : "On"}'
         self.Arduino_Shutter_D[DtO["Name"]].flush()
         self.Arduino_Shutter_D[DtO["Name"]].write(cmd)
         self.Arduino_Shutter_D[DtO["Name"]].flush()
@@ -74,7 +74,23 @@ class Arduino_Shutter(Device):
     @command(dtype_in=str,dtype_out=str)  
     def CloseShutter(self,Device_to_Open):
         DtO=json.loads(Device_to_Open)
-        cmd ="Off\n"
+        cmd ='{"action" : "Off"}'
+        self.Arduino_Shutter_D[DtO["Name"]].write(cmd.encode())
+        msg = self.Arduino_Shutter_D[DtO["Name"]].read_until(b'\n')
+        return msg.decode('utf-8')
+    
+    '''
+        Device_to_Open =        {
+                                    "Name"      : <user_name_given_on Connect>,
+                                    "time_ms"   :  100,
+                                    "cicles"    :  10   
+                                }
+    '''  
+
+    @command(dtype_in=str,dtype_out=str)  
+    def OperationShutter(self,Device_to_Open):
+        DtO=json.loads(Device_to_Open)
+        cmd ='{"operation" : {"time_ms":'+str(DtO["time_ms"])+',"cicles":'+str(DtO["cicles"])+'}}'
         self.Arduino_Shutter_D[DtO["Name"]].write(cmd.encode())
         msg = self.Arduino_Shutter_D[DtO["Name"]].read_until(b'\n')
         return msg.decode('utf-8')
